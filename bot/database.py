@@ -169,25 +169,61 @@ class Database:
         # ===== ADD FOREIGN KEYS VIA ALTER TABLE =====
         # Now that all tables exist with PRIMARY KEYs, safely add the FKs
         if self.use_postgres:
-            # Add FK from transportes to clientes
+            # Ensure transportes.id has a unique constraint (it should from SERIAL PRIMARY KEY, but verify)
             try:
                 self._execute("""
-                    ALTER TABLE transportes
-                    ADD CONSTRAINT fk_transportes_cliente
-                    FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE
+                    CREATE UNIQUE INDEX IF NOT EXISTS idx_transportes_id_unique 
+                    ON transportes(id)
                 """, commit=True)
             except:
-                pass  # Constraint might already exist
+                pass  # Index might already exist
             
-            # Add FK from log_transportes to transportes
+            # Add FK from transportes to clientes (only if it doesn't exist)
+            try:
+                # Check if constraint exists
+                constraint_exists = self._execute("""
+                    SELECT constraint_name 
+                    FROM information_schema.table_constraints 
+                    WHERE table_name='transportes' 
+                    AND constraint_name='fk_transportes_cliente'
+                """, fetchall=True)
+                
+                if not constraint_exists:
+                    self._execute("""
+                        ALTER TABLE transportes
+                        ADD CONSTRAINT fk_transportes_cliente
+                        FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE
+                    """, commit=True)
+            except Exception as e:
+                pass  # Constraint already exists or other error
+            
+            # Ensure log_transportes.transporte_id has unique reference to transportes.id
             try:
                 self._execute("""
-                    ALTER TABLE log_transportes
-                    ADD CONSTRAINT fk_log_transportes_transporte
-                    FOREIGN KEY (transporte_id) REFERENCES transportes(id) ON DELETE CASCADE
+                    CREATE UNIQUE INDEX IF NOT EXISTS idx_log_transportes_transporte_id 
+                    ON log_transportes(transporte_id)
                 """, commit=True)
             except:
-                pass  # Constraint might already exist
+                pass  # Index might already exist
+            
+            # Add FK from log_transportes to transportes (only if it doesn't exist)
+            try:
+                # Check if constraint exists
+                constraint_exists = self._execute("""
+                    SELECT constraint_name 
+                    FROM information_schema.table_constraints 
+                    WHERE table_name='log_transportes' 
+                    AND constraint_name='fk_log_transportes_transporte'
+                """, fetchall=True)
+                
+                if not constraint_exists:
+                    self._execute("""
+                        ALTER TABLE log_transportes
+                        ADD CONSTRAINT fk_log_transportes_transporte
+                        FOREIGN KEY (transporte_id) REFERENCES transportes(id) ON DELETE CASCADE
+                    """, commit=True)
+            except Exception as e:
+                pass  # Constraint already exists or other error
         else:
             # SQLite handles FKs differently, they're defined in CREATE TABLE
             # But since we created without FKs, we need to enable FK enforcement
