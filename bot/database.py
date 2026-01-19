@@ -79,7 +79,7 @@ class Database:
         if self.use_postgres:
             cliente_id = "SERIAL PRIMARY KEY"
             transporte_id = "SERIAL PRIMARY KEY"
-            autoinc = "SERIAL"
+            autoinc = "SERIAL PRIMARY KEY"
             boolean_false = "FALSE"
         else:
             cliente_id = "INTEGER PRIMARY KEY"
