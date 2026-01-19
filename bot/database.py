@@ -81,15 +81,6 @@ class Database:
             transporte_id = "SERIAL PRIMARY KEY"
             autoinc = "SERIAL PRIMARY KEY"
             boolean_false = "FALSE"
-            
-            # Disable FK constraints temporarily to avoid creation order issues
-            conn = self.get_connection()
-            conn.set_session(autocommit=True)
-            try:
-                conn.cursor().execute("ALTER SESSION SET CONSTRAINTS = DEFERRED")
-            except:
-                pass  # Ignore if not supported
-            conn.close()
         else:
             cliente_id = "INTEGER PRIMARY KEY"
             transporte_id = "INTEGER PRIMARY KEY AUTOINCREMENT"
