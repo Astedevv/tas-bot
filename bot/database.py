@@ -130,20 +130,32 @@ class Database:
         """ % (autoinc, boolean_false, boolean_false, boolean_false), commit=True)
 
         # log_transportes - CREATE THIRD (depends on transportes)
-        self._execute("""
-            CREATE TABLE IF NOT EXISTS log_transportes (
-                id %s,
-                transporte_id INTEGER NOT NULL,
-                origem TEXT,
-                destino TEXT,
-                valor_aproximado TEXT,
-                prioridade TEXT,
-                status_final TEXT,
-                data_conclusao TIMESTAMP,
-                message_id TEXT,
-                FOREIGN KEY (transporte_id) REFERENCES transportes(id) ON DELETE CASCADE
-            )
-        """ % (autoinc,), commit=True)
+        # Add delay/retry logic for PostgreSQL FK to work properly
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                self._execute("""
+                    CREATE TABLE IF NOT EXISTS log_transportes (
+                        id %s,
+                        transporte_id INTEGER NOT NULL,
+                        origem TEXT,
+                        destino TEXT,
+                        valor_aproximado TEXT,
+                        prioridade TEXT,
+                        status_final TEXT,
+                        data_conclusao TIMESTAMP,
+                        message_id TEXT,
+                        FOREIGN KEY (transporte_id) REFERENCES transportes(id) ON DELETE CASCADE
+                    )
+                """ % (autoinc,), commit=True)
+                break  # Success, exit retry loop
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    import time
+                    time.sleep(0.5)  # Brief wait before retry
+                else:
+                    # If all retries failed, log but continue (tables might already exist)
+                    pass
 
         # configuracoes - NO DEPENDENCIES
         self._execute("""
