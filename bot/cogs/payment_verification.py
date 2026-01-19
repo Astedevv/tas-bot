@@ -451,7 +451,7 @@ class PaymentVerification(commands.Cog):
         
         # Busca dados do cliente
         try:
-            db._execute("SELECT discord_id FROM clientes WHERE id = ?", (transporte['cliente_id'],), fetchone=True)
+            cliente_row = db._execute("SELECT discord_id FROM clientes WHERE id = ?", (transporte['cliente_id'],), fetchone=True)
             discord_id = int(cliente_row['discord_id']) if cliente_row else transporte['cliente_id']
         except:
             discord_id = transporte['cliente_id']
@@ -594,7 +594,7 @@ class PaymentVerification(commands.Cog):
             async def iniciar_callback(init_inter):
                 # Busca dados completos do transporte
                 try:
-                    db._execute("SELECT * FROM transportes WHERE id = ?", (transporte_id,), fetchone=True)
+                    transporte_completo = db._execute("SELECT * FROM transportes WHERE id = ?", (transporte_id,), fetchone=True)
                     
                     if transporte_completo:
                         await self._iniciar_transporte(init_inter, transporte_completo, numero_ticket, canal_ticket)
@@ -696,7 +696,7 @@ class PaymentVerification(commands.Cog):
         
         guild = self.bot.get_guild(self.guild_id)
         try:
-            db._execute("SELECT discord_id FROM clientes WHERE id = ?", (transporte['cliente_id'],), fetchone=True)
+            cliente_row = db._execute("SELECT discord_id FROM clientes WHERE id = ?", (transporte['cliente_id'],), fetchone=True)
             discord_id = int(cliente_row['discord_id']) if cliente_row else transporte['cliente_id']
         except:
             discord_id = transporte['cliente_id']
@@ -759,7 +759,7 @@ class PaymentVerification(commands.Cog):
         
         # Busca cliente
         try:
-            db._execute("SELECT discord_id FROM clientes WHERE id = ?", (transporte['cliente_id'],), fetchone=True)
+            cliente_row = db._execute("SELECT discord_id FROM clientes WHERE id = ?", (transporte['cliente_id'],), fetchone=True)
             discord_id = int(cliente_row['discord_id']) if cliente_row else transporte['cliente_id']
         except:
             discord_id = transporte['cliente_id']
