@@ -6,6 +6,10 @@ from discord.ext import commands
 import os
 from dotenv import load_dotenv
 import asyncio
+import sys
+
+# Adiciona /app ao path para importar bot como módulo no container
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 load_dotenv()
 

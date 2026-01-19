@@ -19,4 +19,5 @@ else
   echo "DATABASE_URL not present"
 fi
 echo "--- starting bot ---"
-exec python bot/main.py
+cd /app/bot
+exec python main.py
