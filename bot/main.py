@@ -51,13 +51,20 @@ async def on_interaction(interaction: discord.Interaction):
 
 async def load_cogs():
     """Carrega todos os cogs"""
-    cogs_dir = "./cogs"
-    
+    base_dir = os.path.dirname(__file__)
+    cogs_dir = os.path.join(base_dir, "cogs")
+
+    # Determine package prefix (ex: 'bot') to import extensions reliably
+    package_prefix = os.path.basename(base_dir) or None
+
     for filename in os.listdir(cogs_dir):
         if filename.endswith(".py") and not filename.startswith("__"):
             cog_name = filename[:-3]
             try:
-                await bot.load_extension(f"cogs.{cog_name}")
+                if package_prefix:
+                    await bot.load_extension(f"{package_prefix}.cogs.{cog_name}")
+                else:
+                    await bot.load_extension(f"cogs.{cog_name}")
                 print(f"✅ Cog carregado: {cog_name}")
             except Exception as e:
                 print(f"❌ Erro ao carregar {cog_name}: {e}")
