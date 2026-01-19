@@ -21,5 +21,5 @@ RUN mkdir -p bot/data/qr_codes
 COPY bot/entrypoint.sh /app/bot/entrypoint.sh
 RUN chmod +x /app/bot/entrypoint.sh
 
-# Executa o entrypoint (imprime debug e em seguida executa python bot/main.py)
-CMD ["/app/bot/entrypoint.sh"]
+# Executa o entrypoint via shell para evitar problemas com line endings/shebang
+CMD ["sh", "/app/bot/entrypoint.sh"]
