@@ -104,7 +104,7 @@ class Database:
         # Note: use simple types; some defaults differ but are compatible
         self._execute("""
             CREATE TABLE IF NOT EXISTS transportes (
-                id %s,
+                id %s PRIMARY KEY,
                 numero_ticket INTEGER UNIQUE,
                 cliente_id INTEGER NOT NULL,
                 status TEXT,
