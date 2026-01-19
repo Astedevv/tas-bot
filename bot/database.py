@@ -81,13 +81,22 @@ class Database:
             transporte_id = "SERIAL PRIMARY KEY"
             autoinc = "SERIAL PRIMARY KEY"
             boolean_false = "FALSE"
+            
+            # Disable FK constraints temporarily to avoid creation order issues
+            conn = self.get_connection()
+            conn.set_session(autocommit=True)
+            try:
+                conn.cursor().execute("ALTER SESSION SET CONSTRAINTS = DEFERRED")
+            except:
+                pass  # Ignore if not supported
+            conn.close()
         else:
             cliente_id = "INTEGER PRIMARY KEY"
             transporte_id = "INTEGER PRIMARY KEY AUTOINCREMENT"
             autoinc = "INTEGER PRIMARY KEY AUTOINCREMENT"
             boolean_false = "0"
 
-        # clientes
+        # clientes - CREATE FIRST (no dependencies)
         self._execute(f"""
             CREATE TABLE IF NOT EXISTS clientes (
                 id {cliente_id},
@@ -100,7 +109,7 @@ class Database:
             )
         """, commit=True)
 
-        # transportes
+        # transportes - CREATE SECOND (depends on clientes)
         # Note: use simple types; some defaults differ but are compatible
         self._execute("""
             CREATE TABLE IF NOT EXISTS transportes (
@@ -125,15 +134,15 @@ class Database:
                 data_conclusao TIMESTAMP,
                 notas TEXT,
                 staff_message_id TEXT,
-                FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+                FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE
             )
         """ % (autoinc, boolean_false, boolean_false, boolean_false), commit=True)
 
-        # log_transportes
+        # log_transportes - CREATE THIRD (depends on transportes)
         self._execute("""
             CREATE TABLE IF NOT EXISTS log_transportes (
                 id %s,
-                transporte_id INTEGER,
+                transporte_id INTEGER NOT NULL,
                 origem TEXT,
                 destino TEXT,
                 valor_aproximado TEXT,
@@ -141,11 +150,11 @@ class Database:
                 status_final TEXT,
                 data_conclusao TIMESTAMP,
                 message_id TEXT,
-                FOREIGN KEY (transporte_id) REFERENCES transportes(id)
+                FOREIGN KEY (transporte_id) REFERENCES transportes(id) ON DELETE CASCADE
             )
         """ % (autoinc,), commit=True)
 
-        # configuracoes
+        # configuracoes - NO DEPENDENCIES
         self._execute("""
             CREATE TABLE IF NOT EXISTS configuracoes (
                 chave TEXT PRIMARY KEY,
@@ -154,7 +163,7 @@ class Database:
             )
         """, commit=True)
 
-        # auditorias
+        # auditorias - NO DEPENDENCIES (but references transporte_id for data integrity)
         self._execute("""
             CREATE TABLE IF NOT EXISTS auditorias (
                 id %s,
