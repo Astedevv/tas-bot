@@ -15,7 +15,8 @@ TRANSPORTER_ROLE_ID = os.getenv("TRANSPORTER_ROLE_ID")
 
 # Database
 DATABASE_PATH = "./data/tas_mania.db"
-DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
+# Prefer DATABASE_URL from environment (Postgres). If not present, fall back to sqlite URL.
+DATABASE_URL = os.getenv("DATABASE_URL") or f"sqlite:///{DATABASE_PATH}"
 
 # Preços (novo sistema)
 PRECO_POR_MILHAO = 0.6  # R$ 0,60 por 1 milhão de prata
