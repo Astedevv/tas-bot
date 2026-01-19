@@ -4,7 +4,8 @@ Configurações centralizadas do bot
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+# Load .env from parent directory (project root)
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 # Discord
 BOT_TOKEN = os.getenv("BOT_TOKEN")
