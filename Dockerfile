@@ -17,6 +17,9 @@ COPY . .
 
 # Cria diretório de dados dentro de bot
 RUN mkdir -p bot/data/qr_codes
+# Copia entrypoint de debug e garante permissão de execução
+COPY bot/entrypoint.sh /app/bot/entrypoint.sh
+RUN chmod +x /app/bot/entrypoint.sh
 
-# Executa o bot a partir de /app com o caminho para bot/main.py
-CMD ["python", "bot/main.py"]
+# Executa o entrypoint (imprime debug e em seguida executa python bot/main.py)
+CMD ["/app/bot/entrypoint.sh"]
