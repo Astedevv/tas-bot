@@ -54,7 +54,12 @@ class Database:
 
         conn = self.get_connection()
         try:
-            cur = conn.cursor()
+            # Use RealDictCursor for PostgreSQL to return dicts instead of tuples
+            if self.use_postgres:
+                cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            else:
+                cur = conn.cursor()
+            
             cur.execute(sql_exec, params)
             result = None
             if commit:
