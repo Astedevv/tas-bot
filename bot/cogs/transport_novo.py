@@ -47,7 +47,7 @@ class TransporteCog(commands.Cog):
         
         # Restaura contador
         conn = db.get_connection()
-        cursor = conn.cursor()
+        cursor = db.get_wrapped_cursor(conn)
         cursor.execute("SELECT COUNT(*) FROM transportes")
         self.ticket_counter = cursor.fetchone()[0]
         conn.close()

@@ -21,8 +21,8 @@ class Financeiro(commands.Cog):
     def _init_tabelas(self):
         """Inicializa tabelas de financeiro se não existirem"""
         try:
-            conn = sqlite3.connect("./data/tas_mania.db")
-            cursor = conn.cursor()
+            conn = db.get_connection()
+            cursor = db.get_wrapped_cursor(conn)
             
             # Tabela de transações financeiras
             cursor.execute("""
@@ -65,8 +65,8 @@ class Financeiro(commands.Cog):
     def _adicionar_transacao(self, tipo, valor, descricao="", motivo="", autor_id=0):
         """Adiciona uma transação e atualiza saldo"""
         try:
-            conn = sqlite3.connect("./data/tas_mania.db")
-            cursor = conn.cursor()
+            conn = db.get_connection()
+            cursor = db.get_wrapped_cursor(conn)
             
             # Adiciona transação
             cursor.execute("""
@@ -109,8 +109,8 @@ class Financeiro(commands.Cog):
     def _get_saldo(self):
         """Retorna saldo atual"""
         try:
-            conn = sqlite3.connect("./data/tas_mania.db")
-            cursor = conn.cursor()
+            conn = db.get_connection()
+            cursor = db.get_wrapped_cursor(conn)
             cursor.execute("SELECT * FROM financeiro_saldo WHERE id = 1")
             dados = cursor.fetchone()
             conn.close()
@@ -130,9 +130,9 @@ class Financeiro(commands.Cog):
     def _get_historico(self, limite=10):
         """Retorna histórico de transações"""
         try:
-            conn = sqlite3.connect("./data/tas_mania.db")
+            conn = db.get_connection()
             conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
+            cursor = db.get_wrapped_cursor(conn)
             
             cursor.execute("""
                 SELECT * FROM financeiro_transacoes 

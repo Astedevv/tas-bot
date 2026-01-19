@@ -30,7 +30,7 @@ class TicketsCog(commands.Cog):
         
         # Restaura o contador do banco
         conn = db.get_connection()
-        cursor = conn.cursor()
+        cursor = db.get_wrapped_cursor(conn)
         cursor.execute("SELECT COUNT(*) FROM transportes")
         self.ticket_counter = cursor.fetchone()[0]
         conn.close()

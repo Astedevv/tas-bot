@@ -26,6 +26,23 @@ if DATABASE_URL and DATABASE_URL.startswith("postgres"):
         USE_POSTGRES = False
 
 
+class Row(dict):
+    """Wrapper que permite acessar valores tanto como dict quanto como tuple/list"""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._values = list(self.values())
+    
+    def __getitem__(self, key):
+        # Se for índice numérico, retorna o valor por posição
+        if isinstance(key, int):
+            return self._values[key]
+        # Se for string, retorna o valor por chave
+        return super().__getitem__(key)
+    
+    def __repr__(self):
+        return f"Row({dict.__repr__(self)})"
+
+
 class Database:
     def __init__(self):
         self.sqlite_path = DATABASE_PATH
@@ -41,6 +58,39 @@ class Database:
             conn = sqlite3.connect(self.sqlite_path)
             conn.row_factory = sqlite3.Row
             return conn
+    
+    def get_wrapped_cursor(self, conn):
+        """Retorna um cursor que converte resultados para Row (compatível com ambos dict e tuple)"""
+        if self.use_postgres:
+            cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        else:
+            cursor = conn.cursor()
+        
+        # Wrapper para converter fetchone() e fetchall()
+        original_fetchone = cursor.fetchone
+        original_fetchall = cursor.fetchall
+        
+        def wrapped_fetchone():
+            result = original_fetchone()
+            if result:
+                if isinstance(result, dict):
+                    return Row(result)
+                elif isinstance(result, sqlite3.Row):
+                    return Row(dict(result))
+            return result
+        
+        def wrapped_fetchall():
+            results = original_fetchall()
+            if results:
+                return [
+                    Row(row) if isinstance(row, dict) else Row(dict(row)) if isinstance(row, sqlite3.Row) else row
+                    for row in results
+                ]
+            return results
+        
+        cursor.fetchone = wrapped_fetchone
+        cursor.fetchall = wrapped_fetchall
+        return cursor
 
     def _execute(self, sql, params=None, fetchone=False, fetchall=False, commit=False):
         # Adapt placeholder style for psycopg2: replace ? -> %s
@@ -66,8 +116,17 @@ class Database:
                 conn.commit()
             if fetchone:
                 result = cur.fetchone()
+                # Converter para Row para compatibilidade com índices numéricos
+                if result:
+                    if isinstance(result, dict):
+                        result = Row(result)
+                    elif isinstance(result, sqlite3.Row):
+                        result = Row(dict(result))
             if fetchall:
                 result = cur.fetchall()
+                # Converter lista para Row objects
+                if result:
+                    result = [Row(row) if isinstance(row, dict) else Row(dict(row)) if isinstance(row, sqlite3.Row) else row for row in result]
             cur.close()
             return result
         finally:

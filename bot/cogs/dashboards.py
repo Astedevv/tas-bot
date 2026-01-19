@@ -37,8 +37,8 @@ class Dashboards(commands.Cog):
     def _get_stats_transporte(self):
         """Retorna estatísticas de transportes por status"""
         try:
-            conn = sqlite3.connect("./data/tas_mania.db")
-            cursor = conn.cursor()
+            conn = db.get_connection()
+            cursor = db.get_wrapped_cursor(conn)
             
             # Conta transportes por status
             # Assumindo que existe uma tabela de transportes com status
