@@ -5,8 +5,8 @@ DESABILITADO: Requer banco de dados legado não disponível
 import discord
 from discord.ext import commands
 from discord.app_commands import checks
-from config import STATUS, PRECO_BASE
-from utils.embeds import criar_embed_transporte
+from bot.config import STATUS, PRECO_BASE
+from bot.utils.embeds import criar_embed_transporte
 from datetime import datetime, timedelta
 
 class StaffCog(commands.Cog):

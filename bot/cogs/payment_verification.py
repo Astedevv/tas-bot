@@ -7,8 +7,8 @@ from discord.ext import commands
 from pathlib import Path
 import sqlite3
 from datetime import datetime
-from database import db
-from config import GUILD_ID, STATUS, PIX_KEY, PIX_QRCODE_PATH
+from bot.database import db
+from bot.config import GUILD_ID, STATUS, PIX_KEY, PIX_QRCODE_PATH
 
 class PaymentVerification(commands.Cog):
     def __init__(self, bot):

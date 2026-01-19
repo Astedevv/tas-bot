@@ -3,9 +3,9 @@ Cog: Gerenciamento de Transportes (Transportadores)
 """
 import discord
 from discord.ext import commands
-from database import db
-from config import STATUS
-from utils.embeds import criar_embed_transporte
+from bot.database import db
+from bot.config import STATUS
+from bot.utils.embeds import criar_embed_transporte
 
 class TransportCog(commands.Cog):
     def __init__(self, bot):

@@ -3,9 +3,9 @@ Cog: Fila de Transportes em Real-time
 """
 import discord
 from discord.ext import commands, tasks
-from database import db
-from config import STATUS
-from utils.embeds import criar_embed_fila
+from bot.database import db
+from bot.config import STATUS
+from bot.utils.embeds import criar_embed_fila
 import asyncio
 
 class QueueCog(commands.Cog):

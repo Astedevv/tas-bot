@@ -8,7 +8,7 @@ from discord import app_commands
 import sqlite3
 from datetime import datetime
 import asyncio
-from config import GUILD_ID
+from bot.config import GUILD_ID
 import sys
 import os
 

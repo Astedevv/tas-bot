@@ -4,8 +4,8 @@ Fluxo Completo: Nick → Origem → Prioridade → Valor → Obs → Pagamento �
 """
 import discord
 from discord.ext import commands
-from database import db
-from config import (
+from bot.database import db
+from bot.config import (
     PRECO_POR_MILHAO, PRECO_ALTA_PRIORIDADE, VALOR_MINIMO, 
     TAXA_ALTA_PRIORIDADE, PIX_KEY, STATUS, ORIGENS, DESTINO_PADRAO, PIX_QRCODE_PATH
 )

@@ -15,9 +15,9 @@ Fluxo:
 """
 import discord
 from discord.ext import commands
-from database import db
-from config import PRECO_BASE, VALOR_MINIMO, TAXA_ALTA_PRIORIDADE, PIX_KEY, STATUS, ORIGENS
-from utils.validators import calcular_taxa
+from bot.database import db
+from bot.config import PRECO_BASE, VALOR_MINIMO, TAXA_ALTA_PRIORIDADE, PIX_KEY, STATUS, ORIGENS
+from bot.utils.validators import calcular_taxa
 
 class ModalNick(discord.ui.Modal):
     def __init__(self, callback):

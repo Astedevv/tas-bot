@@ -8,8 +8,8 @@ from discord import app_commands
 import sqlite3
 from datetime import datetime
 import asyncio
-from database import db
-from config import GUILD_ID, STATUS
+from bot.database import db
+from bot.config import GUILD_ID, STATUS
 
 class RelatorioTransportes(commands.Cog):
     def __init__(self, bot):

@@ -3,19 +3,19 @@ Cog: Sistema de Tickets
 """
 import discord
 from discord.ext import commands
-from database import db
-from config import (
+from bot.database import db
+from bot.config import (
     PRECO_BASE, VALOR_MINIMO, TAXA_ALTA_PRIORIDADE, PIX_KEY, 
     STATUS, ORIGENS, DESTINO_PADRAO
 )
-from utils.embeds import (
+from bot.utils.embeds import (
     criar_embed_resumo_transporte, criar_embed_transporte
 )
-from utils.buttons import (
+from bot.utils.buttons import (
     BotaoOrigem, BotaoPrioridade, ModalValor, ModalObservacoes,
     ViewConfirmarDeposito, ModalConfirmarDeposito
 )
-from utils.validators import validar_valor_prata, calcular_taxa
+from bot.utils.validators import validar_valor_prata, calcular_taxa
 
 class TicketsCog(commands.Cog):
     def __init__(self, bot):
@@ -349,7 +349,7 @@ class TicketsCog(commands.Cog):
         
         # Se aguardando print
         if session['print_item'] is None and message.attachments:
-            from utils.validators import validar_imagem
+            from bot.utils.validators import validar_imagem
             
             attachment = message.attachments[0]
             
