@@ -1,22 +1,22 @@
 FROM python:3.11-slim
 
-# Coloca o diretório de trabalho diretamente em /app/bot
-WORKDIR /app/bot
+# Diretório de trabalho na raiz do app
+WORKDIR /app
 
-# Instala dependências do sistema necessárias para algumas wheels
+# Instala dependências de sistema necessárias
 RUN apt-get update && apt-get install -y \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Copia apenas o requirements do diretório bot e instala as dependências
-COPY bot/requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+# Copia requirements do bot e instala dependências
+COPY bot/requirements.txt bot/requirements.txt
+RUN pip install --no-cache-dir -r bot/requirements.txt
 
-# Copia apenas o código da pasta bot para o WORKDIR (/app/bot)
-COPY bot/ .
+# Copia todo o repositório para /app (inclui a pasta bot)
+COPY . .
 
-# Cria diretório de dados
-RUN mkdir -p data/qr_codes
+# Cria diretório de dados dentro de bot
+RUN mkdir -p bot/data/qr_codes
 
-# Executa o bot a partir de /app/bot
-CMD ["python", "main.py"]
+# Executa o bot a partir de /app com o caminho para bot/main.py
+CMD ["python", "bot/main.py"]
