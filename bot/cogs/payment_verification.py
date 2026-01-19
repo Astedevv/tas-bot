@@ -67,17 +67,11 @@ class PaymentVerification(commands.Cog):
         # Busca o transporte
         try:
             print(f"   ⏳ Buscando transporte no banco...")
-            conn = db.get_connection()
-            cursor = db.get_wrapped_cursor(conn)
-            
-            cursor.execute("""
+            transporte = db._execute("""
                 SELECT * FROM transportes 
                 WHERE numero_ticket = ? 
                 ORDER BY id DESC LIMIT 1
-            """, (numero_ticket,))
-            
-            transporte = cursor.fetchone()
-            conn.close()
+            """, (numero_ticket,), fetchone=True)
             
             if not transporte:
                 print(f"   ❌ Transporte NÃO encontrado no banco")
@@ -308,33 +302,27 @@ class PaymentVerification(commands.Cog):
         
         # ===== ADICIONAR AO BANCO FINANCEIRO =====
         try:
-            conn = db.get_connection()
-            cursor = db.get_wrapped_cursor(conn)
-            
             # Adiciona transação de entrada
             taxa_final = float(transporte['taxa_final'])
-            cursor.execute("""
+            db._execute("""
                 INSERT INTO financeiro_transacoes 
                 (tipo, valor, descricao, motivo, autor_id)
                 VALUES (?, ?, ?, ?, ?)
-            """, ("ENTRADA", taxa_final, f"Transporte Ticket #{numero_ticket:04d}", f"Cliente: {transporte['cliente_id']}", 0))
+            """, ("ENTRADA", taxa_final, f"Transporte Ticket #{numero_ticket:04d}", f"Cliente: {transporte['cliente_id']}", 0), commit=True)
             
             # Atualiza saldo
-            cursor.execute("SELECT * FROM financeiro_saldo WHERE id = 1")
-            saldo_data = cursor.fetchone()
+            saldo_data = db._execute("SELECT * FROM financeiro_saldo WHERE id = 1", fetchone=True)
             saldo_total = (saldo_data[1] if saldo_data else 0) + taxa_final
             entrada = (saldo_data[2] if saldo_data else 0) + taxa_final
             saida = saldo_data[3] if saldo_data else 0
             
-            cursor.execute("""
+            db._execute("""
                 UPDATE financeiro_saldo 
                 SET saldo_total = ?, saldo_entrada = ?, 
                     ultima_atualizacao = CURRENT_TIMESTAMP
                 WHERE id = 1
-            """, (saldo_total, entrada))
+            """, (saldo_total, entrada), commit=True)
             
-            conn.commit()
-            conn.close()
             print(f"   💰 Entrada registrada no banco: R$ {taxa_final:.2f}")
         except Exception as e:
             print(f"   ⚠️ Erro ao registrar no banco: {e}")
@@ -372,11 +360,7 @@ class PaymentVerification(commands.Cog):
             embed_aprovado.set_footer(text="🎯 WHADAWEL™ | Transportes Seguros")
             
             try:
-                conn = db.get_connection()
-                cursor = db.get_wrapped_cursor(conn)
-                cursor.execute("SELECT discord_id FROM clientes WHERE id = ?", (transporte['cliente_id'],))
-                cliente_row = cursor.fetchone()
-                conn.close()
+                cliente_row = db._execute("SELECT discord_id FROM clientes WHERE id = ?", (transporte['cliente_id'],), fetchone=True)
                 discord_id = int(cliente_row['discord_id']) if cliente_row else transporte['cliente_id']
             except:
                 discord_id = transporte['cliente_id']
@@ -467,11 +451,7 @@ class PaymentVerification(commands.Cog):
         
         # Busca dados do cliente
         try:
-            conn = db.get_connection()
-            cursor = db.get_wrapped_cursor(conn)
-            cursor.execute("SELECT discord_id FROM clientes WHERE id = ?", (transporte['cliente_id'],))
-            cliente_row = cursor.fetchone()
-            conn.close()
+            db._execute("SELECT discord_id FROM clientes WHERE id = ?", (transporte['cliente_id'],), fetchone=True)
             discord_id = int(cliente_row['discord_id']) if cliente_row else transporte['cliente_id']
         except:
             discord_id = transporte['cliente_id']
@@ -614,11 +594,7 @@ class PaymentVerification(commands.Cog):
             async def iniciar_callback(init_inter):
                 # Busca dados completos do transporte
                 try:
-                    conn = db.get_connection()
-                    cursor = db.get_wrapped_cursor(conn)
-                    cursor.execute("SELECT * FROM transportes WHERE id = ?", (transporte_id,))
-                    transporte_completo = cursor.fetchone()
-                    conn.close()
+                    db._execute("SELECT * FROM transportes WHERE id = ?", (transporte_id,), fetchone=True)
                     
                     if transporte_completo:
                         await self._iniciar_transporte(init_inter, transporte_completo, numero_ticket, canal_ticket)
@@ -720,11 +696,7 @@ class PaymentVerification(commands.Cog):
         
         guild = self.bot.get_guild(self.guild_id)
         try:
-            conn = db.get_connection()
-            cursor = db.get_wrapped_cursor(conn)
-            cursor.execute("SELECT discord_id FROM clientes WHERE id = ?", (transporte['cliente_id'],))
-            cliente_row = cursor.fetchone()
-            conn.close()
+            db._execute("SELECT discord_id FROM clientes WHERE id = ?", (transporte['cliente_id'],), fetchone=True)
             discord_id = int(cliente_row['discord_id']) if cliente_row else transporte['cliente_id']
         except:
             discord_id = transporte['cliente_id']
@@ -787,11 +759,7 @@ class PaymentVerification(commands.Cog):
         
         # Busca cliente
         try:
-            conn = db.get_connection()
-            cursor = db.get_wrapped_cursor(conn)
-            cursor.execute("SELECT discord_id FROM clientes WHERE id = ?", (transporte['cliente_id'],))
-            cliente_row = cursor.fetchone()
-            conn.close()
+            db._execute("SELECT discord_id FROM clientes WHERE id = ?", (transporte['cliente_id'],), fetchone=True)
             discord_id = int(cliente_row['discord_id']) if cliente_row else transporte['cliente_id']
         except:
             discord_id = transporte['cliente_id']
@@ -1000,15 +968,12 @@ class PaymentVerification(commands.Cog):
                     valor_recebido = float(self.valor_input.value)
                     
                     # Busca o transporte
-                    conn = db.get_connection()
-                    cursor = db.get_wrapped_cursor(conn)
-                    cursor.execute("""
+                    db._execute("""
                         SELECT * FROM transportes 
                         WHERE numero_ticket = ? 
                         ORDER BY id DESC LIMIT 1
                     """, (numero_ticket,))
                     transporte = cursor.fetchone()
-                    conn.close()
                     
                     if not transporte:
                         await modal_interaction.response.send_message(
@@ -1084,4 +1049,8 @@ class PaymentVerification(commands.Cog):
 async def setup(bot):
     await bot.add_cog(PaymentVerification(bot))
     print("✅ Cog Payment Verification carregado")
+
+
+
+
 
