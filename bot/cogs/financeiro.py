@@ -24,10 +24,16 @@ class Financeiro(commands.Cog):
             conn = db.get_connection()
             cursor = db.get_wrapped_cursor(conn)
             
+            # Usa tipo diferente para Postgres e SQLite
+            if db.use_postgres:
+                id_tipo = "SERIAL PRIMARY KEY"
+            else:
+                id_tipo = "INTEGER PRIMARY KEY AUTOINCREMENT"
+            
             # Tabela de transações financeiras
-            cursor.execute("""
+            cursor.execute(f"""
                 CREATE TABLE IF NOT EXISTS financeiro_transacoes (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id {id_tipo},
                     tipo TEXT,
                     descricao TEXT,
                     valor REAL,
@@ -131,7 +137,6 @@ class Financeiro(commands.Cog):
         """Retorna histórico de transações"""
         try:
             conn = db.get_connection()
-            conn.row_factory = sqlite3.Row
             cursor = db.get_wrapped_cursor(conn)
             
             cursor.execute("""
@@ -724,3 +729,4 @@ class Financeiro(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Financeiro(bot))
+

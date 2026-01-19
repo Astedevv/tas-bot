@@ -68,7 +68,6 @@ class PaymentVerification(commands.Cog):
         try:
             print(f"   ⏳ Buscando transporte no banco...")
             conn = db.get_connection()
-            conn.row_factory = sqlite3.Row
             cursor = db.get_wrapped_cursor(conn)
             
             cursor.execute("""
@@ -374,7 +373,6 @@ class PaymentVerification(commands.Cog):
             
             try:
                 conn = db.get_connection()
-                conn.row_factory = sqlite3.Row
                 cursor = db.get_wrapped_cursor(conn)
                 cursor.execute("SELECT discord_id FROM clientes WHERE id = ?", (transporte['cliente_id'],))
                 cliente_row = cursor.fetchone()
@@ -470,7 +468,6 @@ class PaymentVerification(commands.Cog):
         # Busca dados do cliente
         try:
             conn = db.get_connection()
-            conn.row_factory = sqlite3.Row
             cursor = db.get_wrapped_cursor(conn)
             cursor.execute("SELECT discord_id FROM clientes WHERE id = ?", (transporte['cliente_id'],))
             cliente_row = cursor.fetchone()
@@ -618,7 +615,6 @@ class PaymentVerification(commands.Cog):
                 # Busca dados completos do transporte
                 try:
                     conn = db.get_connection()
-                    conn.row_factory = sqlite3.Row
                     cursor = db.get_wrapped_cursor(conn)
                     cursor.execute("SELECT * FROM transportes WHERE id = ?", (transporte_id,))
                     transporte_completo = cursor.fetchone()
@@ -725,7 +721,6 @@ class PaymentVerification(commands.Cog):
         guild = self.bot.get_guild(self.guild_id)
         try:
             conn = db.get_connection()
-            conn.row_factory = sqlite3.Row
             cursor = db.get_wrapped_cursor(conn)
             cursor.execute("SELECT discord_id FROM clientes WHERE id = ?", (transporte['cliente_id'],))
             cliente_row = cursor.fetchone()
@@ -793,7 +788,6 @@ class PaymentVerification(commands.Cog):
         # Busca cliente
         try:
             conn = db.get_connection()
-            conn.row_factory = sqlite3.Row
             cursor = db.get_wrapped_cursor(conn)
             cursor.execute("SELECT discord_id FROM clientes WHERE id = ?", (transporte['cliente_id'],))
             cliente_row = cursor.fetchone()
@@ -1007,7 +1001,6 @@ class PaymentVerification(commands.Cog):
                     
                     # Busca o transporte
                     conn = db.get_connection()
-                    conn.row_factory = sqlite3.Row
                     cursor = db.get_wrapped_cursor(conn)
                     cursor.execute("""
                         SELECT * FROM transportes 
@@ -1091,3 +1084,4 @@ class PaymentVerification(commands.Cog):
 async def setup(bot):
     await bot.add_cog(PaymentVerification(bot))
     print("✅ Cog Payment Verification carregado")
+
