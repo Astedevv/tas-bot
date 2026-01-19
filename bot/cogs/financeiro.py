@@ -139,10 +139,10 @@ class Financeiro(commands.Cog):
             conn = db.get_connection()
             cursor = db.get_wrapped_cursor(conn)
             
-            cursor.execute("""
+            cursor.execute(f"""
                 SELECT * FROM financeiro_transacoes 
-                ORDER BY id DESC LIMIT ?
-            """, (limite,))
+                ORDER BY id DESC LIMIT {limite}
+            """)
             
             transacoes = cursor.fetchall()
             conn.close()
