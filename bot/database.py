@@ -132,7 +132,7 @@ class Database:
         # log_transportes
         self._execute("""
             CREATE TABLE IF NOT EXISTS log_transportes (
-                id %s,
+                id %s PRIMARY KEY,
                 transporte_id INTEGER,
                 origem TEXT,
                 destino TEXT,
@@ -157,7 +157,7 @@ class Database:
         # auditorias
         self._execute("""
             CREATE TABLE IF NOT EXISTS auditorias (
-                id %s,
+                id %s PRIMARY KEY,
                 staff_id TEXT,
                 acao TEXT,
                 transporte_id INTEGER,
