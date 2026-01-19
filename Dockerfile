@@ -14,10 +14,10 @@ COPY bot/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copia o código
-COPY bot/ .
+COPY . .
 
 # Cria diretório de dados
 RUN mkdir -p data/qr_codes
 
-# Executa o bot
-CMD ["python", "main.py"]
+# Executa o bot (usa o caminho dentro da pasta `bot`)
+CMD ["python", "bot/main.py"]
