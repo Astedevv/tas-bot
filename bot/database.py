@@ -87,7 +87,10 @@ class Database:
             autoinc = "INTEGER PRIMARY KEY AUTOINCREMENT"
             boolean_false = "0"
 
-        # clientes - CREATE FIRST (no dependencies)
+        # ===== CREATE TABLES WITHOUT FOREIGN KEYS FIRST =====
+        # This ensures all tables exist with PRIMARY KEYs before we try to add FKs
+        
+        # 1. clientes - CREATE FIRST (no dependencies)
         self._execute(f"""
             CREATE TABLE IF NOT EXISTS clientes (
                 id {cliente_id},
@@ -100,8 +103,7 @@ class Database:
             )
         """, commit=True)
 
-        # transportes - CREATE SECOND (depends on clientes)
-        # Note: use simple types; some defaults differ but are compatible
+        # 2. transportes - CREATE WITHOUT FK (depends on clientes, but we add FK later)
         self._execute("""
             CREATE TABLE IF NOT EXISTS transportes (
                 id %s,
@@ -124,40 +126,26 @@ class Database:
                 data_pagamento TIMESTAMP,
                 data_conclusao TIMESTAMP,
                 notas TEXT,
-                staff_message_id TEXT,
-                FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE
+                staff_message_id TEXT
             )
         """ % (autoinc, boolean_false, boolean_false, boolean_false), commit=True)
 
-        # log_transportes - CREATE THIRD (depends on transportes)
-        # Add delay/retry logic for PostgreSQL FK to work properly
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                self._execute("""
-                    CREATE TABLE IF NOT EXISTS log_transportes (
-                        id %s,
-                        transporte_id INTEGER NOT NULL,
-                        origem TEXT,
-                        destino TEXT,
-                        valor_aproximado TEXT,
-                        prioridade TEXT,
-                        status_final TEXT,
-                        data_conclusao TIMESTAMP,
-                        message_id TEXT,
-                        FOREIGN KEY (transporte_id) REFERENCES transportes(id) ON DELETE CASCADE
-                    )
-                """ % (autoinc,), commit=True)
-                break  # Success, exit retry loop
-            except Exception as e:
-                if attempt < max_retries - 1:
-                    import time
-                    time.sleep(0.5)  # Brief wait before retry
-                else:
-                    # If all retries failed, log but continue (tables might already exist)
-                    pass
+        # 3. log_transportes - CREATE WITHOUT FK
+        self._execute("""
+            CREATE TABLE IF NOT EXISTS log_transportes (
+                id %s,
+                transporte_id INTEGER NOT NULL,
+                origem TEXT,
+                destino TEXT,
+                valor_aproximado TEXT,
+                prioridade TEXT,
+                status_final TEXT,
+                data_conclusao TIMESTAMP,
+                message_id TEXT
+            )
+        """ % (autoinc,), commit=True)
 
-        # configuracoes - NO DEPENDENCIES
+        # 4. configuracoes - NO DEPENDENCIES
         self._execute("""
             CREATE TABLE IF NOT EXISTS configuracoes (
                 chave TEXT PRIMARY KEY,
@@ -166,7 +154,7 @@ class Database:
             )
         """, commit=True)
 
-        # auditorias - NO DEPENDENCIES (but references transporte_id for data integrity)
+        # 5. auditorias - NO DEPENDENCIES
         self._execute("""
             CREATE TABLE IF NOT EXISTS auditorias (
                 id %s,
@@ -177,6 +165,36 @@ class Database:
                 detalhes TEXT
             )
         """ % (autoinc,), commit=True)
+
+        # ===== ADD FOREIGN KEYS VIA ALTER TABLE =====
+        # Now that all tables exist with PRIMARY KEYs, safely add the FKs
+        if self.use_postgres:
+            # Add FK from transportes to clientes
+            try:
+                self._execute("""
+                    ALTER TABLE transportes
+                    ADD CONSTRAINT fk_transportes_cliente
+                    FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE
+                """, commit=True)
+            except:
+                pass  # Constraint might already exist
+            
+            # Add FK from log_transportes to transportes
+            try:
+                self._execute("""
+                    ALTER TABLE log_transportes
+                    ADD CONSTRAINT fk_log_transportes_transporte
+                    FOREIGN KEY (transporte_id) REFERENCES transportes(id) ON DELETE CASCADE
+                """, commit=True)
+            except:
+                pass  # Constraint might already exist
+        else:
+            # SQLite handles FKs differently, they're defined in CREATE TABLE
+            # But since we created without FKs, we need to enable FK enforcement
+            try:
+                self._execute("PRAGMA foreign_keys = ON", commit=True)
+            except:
+                pass
 
     # ---- Compatibility helpers ----
     def _column_exists(self, table, column):
